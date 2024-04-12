@@ -1,0 +1,55 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+
+import { db, Posts } from "astro:db";
+
+if (Astro.request.method === "POST") {
+  // parse form data
+  const formData = await Astro.request.formData();
+  const author = formData.get("author");
+  const content = formData.get("content");
+  if (typeof author === "string" && typeof content === "string") {
+    // insert form data into the Comment table
+    await db.insert(Posts).values({ author, content });
+  }
+}
+
+const posts = await db.select().from(Posts);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <h1>🧑‍🚀 Hello, Astronaut!</h1>
+      {
+        posts.map((post) => (
+          <div>
+            <>
+              <h3>{post.author}</h3>
+              <p>{post.content}</p>
+              <date>{post.published}</date>
+            </>
+          </div>
+        ))
+      }
+      <form method="POST" style="display: grid">
+        <label for="author">Author</label>
+        <input id="author" name="author" />
+
+        <label for="content">Content</label>
+        <textarea id="content" name="content"></textarea>
+
+        <button type="submit">Submit</button>
+      </form>
+    </main>
+    <Footer />
+  </body>
+</html>
